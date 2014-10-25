@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from treebeard.mp_tree import MP_Node
 from treebeard.al_tree import AL_Node
 from treebeard.ns_tree import NS_Node
+from treebeard.me_tree import ME_Node
 
 
 class RelatedModel(models.Model):
@@ -244,15 +245,84 @@ class MP_TestManyToManyWithUser(MP_Node):
     users = models.ManyToManyField(User)
 
 
-BASE_MODELS = AL_TestNode, MP_TestNode, NS_TestNode
-PROXY_MODELS = AL_TestNode_Proxy, MP_TestNode_Proxy, NS_TestNode_Proxy
-SORTED_MODELS = AL_TestNodeSorted, MP_TestNodeSorted, NS_TestNodeSorted
-DEP_MODELS = AL_TestNodeSomeDep, MP_TestNodeSomeDep, NS_TestNodeSomeDep
+
+class ME_TestNode(ME_Node):
+    #parent = models.ForeignKey('self',
+    #                           related_name='children_set',
+    #                           null=True,
+    #                           db_index=True)
+    sib_order = models.PositiveIntegerField()
+    desc = models.CharField(max_length=255)
+
+    def __str__(self):  # pragma: no cover
+        return 'Node %d' % self.pk
+
+    
+class ME_TestNode_Proxy(ME_TestNode):
+    class Meta:
+        proxy = True
+
+
+class ME_TestNodeSorted(ME_Node):
+    #parent = models.ForeignKey('self',
+    #                           related_name='children_set',
+    #                           null=True,
+    #                           db_index=True)
+    node_order_by = ['val1', 'val2', 'desc']
+    val1 = models.IntegerField()
+    val2 = models.IntegerField()
+    desc = models.CharField(max_length=255)
+
+    def __str__(self):  # pragma: no cover
+        return 'Node %d' % self.pk
+
+
+class ME_TestNodeSomeDep(models.Model):
+    node = models.ForeignKey(ME_TestNode)
+
+    def __str__(self):  # pragma: no cover
+        return 'Node %d' % self.pk
+
+
+class ME_TestNodeRelated(ME_Node):
+    # parent = models.ForeignKey('self',
+    #                            related_name='children_set',
+    #                            null=True,
+    #                            db_index=True)
+    sib_order = models.PositiveIntegerField()
+    desc = models.CharField(max_length=255)
+    related = models.ForeignKey(RelatedModel)
+
+    def __str__(self):  # pragma: no cover
+        return 'Node %d' % self.pk
+
+
+class ME_UnicodeNode(ME_Node):
+    # parent = models.ForeignKey('self',
+    #                            related_name='children_set',
+    #                            null=True,
+    #                            db_index=True)
+    sib_order = models.PositiveIntegerField()
+    desc = models.CharField(max_length=255)
+
+    def __str__(self):  # pragma: no cover
+        return self.desc
+
+
+class ME_TestNodeInherited(ME_TestNode):
+    extra_desc = models.CharField(max_length=255)
+
+
+
+BASE_MODELS = AL_TestNode, MP_TestNode, NS_TestNode, ME_TestNode
+PROXY_MODELS = AL_TestNode_Proxy, MP_TestNode_Proxy, NS_TestNode_Proxy, ME_TestNode_Proxy
+SORTED_MODELS = AL_TestNodeSorted, MP_TestNodeSorted, NS_TestNodeSorted, ME_TestNodeSorted
+DEP_MODELS = AL_TestNodeSomeDep, MP_TestNodeSomeDep, NS_TestNodeSomeDep, ME_TestNodeSomeDep
 MP_SHORTPATH_MODELS = MP_TestNodeShortPath, MP_TestSortedNodeShortPath
-RELATED_MODELS = AL_TestNodeRelated, MP_TestNodeRelated, NS_TestNodeRelated
-UNICODE_MODELS = AL_UnicodeNode, MP_UnicodeNode, NS_UnicodetNode
+RELATED_MODELS = AL_TestNodeRelated, MP_TestNodeRelated, NS_TestNodeRelated, ME_TestNodeRelated
+UNICODE_MODELS = AL_UnicodeNode, MP_UnicodeNode, NS_UnicodetNode, ME_UnicodeNode
 INHERITED_MODELS = (
-    AL_TestNodeInherited, MP_TestNodeInherited, NS_TestNodeInherited
+    AL_TestNodeInherited, MP_TestNodeInherited, NS_TestNodeInherited, ME_TestNodeInherited
 )
 
 
